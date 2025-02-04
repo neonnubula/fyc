@@ -1,0 +1,30 @@
+{
+    "morning": {
+        "daily_refresh": true,
+        "tasks": [
+            {
+                "text": "bcaa",
+                "done": false
+            },
+            {
+                "text": "protein",
+                "done": false
+            }
+        ],
+        "last_refresh": "2025-02-04"
+    },
+    "evening": {
+        "daily_refresh": false,
+        "tasks": [
+            {
+                "text": "protein shake",
+                "done": false
+            },
+            {
+                "text": "uni 60 mins",
+                "done": false
+            }
+        ],
+        "last_refresh": "2025-02-04"
+    }
+}
