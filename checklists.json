@@ -26,5 +26,15 @@
             }
         ],
         "last_refresh": "2025-02-04"
+    },
+    "wake up": {
+        "daily_refresh": false,
+        "tasks": [
+            {
+                "text": "bedding organize",
+                "done": false
+            }
+        ],
+        "last_refresh": "2025-02-04"
     }
 }
