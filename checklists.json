@@ -7,11 +7,39 @@
                 "done": false
             },
             {
-                "text": "protein",
+                "text": "cardio 20min",
+                "done": false
+            },
+            {
+                "text": "weights 20min",
+                "done": false
+            },
+            {
+                "text": "core 5min",
+                "done": false
+            },
+            {
+                "text": "stretch 10 min",
+                "done": false
+            },
+            {
+                "text": "protein shake",
+                "done": false
+            },
+            {
+                "text": "blinkist",
+                "done": false
+            },
+            {
+                "text": "korean",
+                "done": false
+            },
+            {
+                "text": "code",
                 "done": false
             }
         ],
-        "last_refresh": "2025-02-04"
+        "last_refresh": "2025-02-05"
     },
     "evening": {
         "daily_refresh": false,

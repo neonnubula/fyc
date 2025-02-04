@@ -7,7 +7,7 @@ import os
 class ChecklistApp:
     def __init__(self, root):
         self.root = root
-        self.root.title("TaskMaster Pro")
+        self.root.title("Finish Your Checklist")
         self.root.geometry("600x500")  # Set a smaller default window size
         self.root.configure(bg="#ffffff")
         
@@ -81,7 +81,7 @@ class ChecklistApp:
         main_container.pack(fill=tk.BOTH, expand=True)
         
         # App title
-        title = ttk.Label(main_container, text="TaskMaster Pro", style='Title.TLabel')
+        title = ttk.Label(main_container, text="Finish Your Checklist", style='Title.TLabel')
         title.config(font=('Arial', 18, 'bold'))
         title.pack(pady=(0, 10))
         
@@ -215,24 +215,20 @@ class ChecklistApp:
             self.display_tasks(selected_checklist)
         
     def add_task(self):
-        selection = self.checklist_combobox.curselection()
-        if not selection:
-            messagebox.showwarning("Warning", "Please select a checklist first")
-            return
-            
         task_text = self.task_entry.get().strip()
         if not task_text:
+            messagebox.showwarning("Warning", "Task cannot be empty")
             return
-            
-        checklist_name = self.checklist_combobox.get(selection[0])
-        self.checklists[checklist_name]['tasks'].append({
-            'text': task_text,
-            'done': False
-        })
-        
+
+        selected_checklist = self.checklist_combobox.get()
+        if not selected_checklist:
+            messagebox.showwarning("Warning", "No checklist selected")
+            return
+
+        self.checklists[selected_checklist]['tasks'].append({'text': task_text, 'done': False})
         self.save_data()
-        self.task_entry.delete(0, tk.END)
-        self.display_tasks(checklist_name)
+        self.display_tasks(selected_checklist)
+        self.task_entry.delete(0, tk.END)  # Clear the entry after adding the task
         
     def toggle_task(self, checklist_name, task_idx):
         self.checklists[checklist_name]['tasks'][task_idx]['done'] = not self.checklists[checklist_name]['tasks'][task_idx]['done']
