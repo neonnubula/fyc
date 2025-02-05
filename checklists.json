@@ -1,75 +1,4 @@
 {
-    "morning": {
-        "daily_refresh": true,
-        "tasks": [
-            {
-                "text": "bcaa",
-                "done": false
-            },
-            {
-                "text": "cardio 20min",
-                "done": false
-            },
-            {
-                "text": "weights 20min",
-                "done": false
-            },
-            {
-                "text": "core 5min",
-                "done": false
-            },
-            {
-                "text": "stretch 10 min",
-                "done": false
-            },
-            {
-                "text": "protein shake",
-                "done": false
-            },
-            {
-                "text": "blinkist",
-                "done": false
-            },
-            {
-                "text": "korean",
-                "done": false
-            },
-            {
-                "text": "code",
-                "done": false
-            }
-        ],
-        "last_refresh": "2025-02-05"
-    },
-    "evening": {
-        "daily_refresh": false,
-        "tasks": [
-            {
-                "text": "protein shake",
-                "done": false
-            },
-            {
-                "text": "uni 60 mins",
-                "done": false
-            }
-        ],
-        "last_refresh": "2025-02-04"
-    },
-    "wake up": {
-        "daily_refresh": false,
-        "tasks": [
-            {
-                "text": "bedding organize",
-                "done": false
-            }
-        ],
-        "last_refresh": "2025-02-04"
-    },
-    "new checklist": {
-        "daily_refresh": false,
-        "tasks": [],
-        "last_refresh": "2025-02-05"
-    },
     "sales": {
         "voicemail": {
             "daily_refresh": false,
@@ -79,11 +8,11 @@
                     "done": false
                 },
                 {
-                    "text": "Call To Action",
+                    "text": "Call to Action",
                     "done": false
                 },
                 {
-                    "text": "Time Frame",
+                    "text": "Timeframe",
                     "done": false
                 }
             ],
@@ -114,6 +43,10 @@
                 },
                 {
                     "text": "Implement Sale Now or \"How & When\"",
+                    "done": false
+                },
+                {
+                    "text": "Anything Else they want to Ask?",
                     "done": false
                 },
                 {
@@ -149,7 +82,44 @@
         },
         "start call": {
             "daily_refresh": false,
-            "tasks": [],
+            "tasks": [
+                {
+                    "text": "Rapport Question",
+                    "done": false
+                },
+                {
+                    "text": "2nd Open Question",
+                    "done": false
+                },
+                {
+                    "text": "Value Add Item",
+                    "done": false
+                },
+                {
+                    "text": "Great Ask for Sale",
+                    "done": false
+                },
+                {
+                    "text": "Objection",
+                    "done": false
+                },
+                {
+                    "text": "Implement Sale Now or \"How & When\"",
+                    "done": false
+                },
+                {
+                    "text": "Anything Else they want to Ask?",
+                    "done": false
+                },
+                {
+                    "text": "Summarise Call",
+                    "done": false
+                },
+                {
+                    "text": "Book Followup or Next Steps",
+                    "done": false
+                }
+            ],
             "last_refresh": "2025-02-05"
         }
     },
@@ -174,7 +144,36 @@
         },
         "start call": {
             "daily_refresh": false,
-            "tasks": [],
+            "tasks": [
+                {
+                    "text": "Rapport Question",
+                    "done": false
+                },
+                {
+                    "text": "2nd Open Question",
+                    "done": false
+                },
+                {
+                    "text": "Value Add Item",
+                    "done": false
+                },
+                {
+                    "text": "Extra Support Required?",
+                    "done": false
+                },
+                {
+                    "text": "Anything they want to Ask?",
+                    "done": false
+                },
+                {
+                    "text": "Summarise Call",
+                    "done": false
+                },
+                {
+                    "text": "Book Followup or Next Steps",
+                    "done": false
+                }
+            ],
             "last_refresh": "2025-02-05"
         }
     },
@@ -199,7 +198,48 @@
         },
         "start call": {
             "daily_refresh": false,
-            "tasks": [],
+            "tasks": [
+                {
+                    "text": "Rapport Question",
+                    "done": false
+                },
+                {
+                    "text": "2nd Open Question",
+                    "done": false
+                },
+                {
+                    "text": "Uncover the Problem",
+                    "done": false
+                },
+                {
+                    "text": "Problem Solve",
+                    "done": false
+                },
+                {
+                    "text": "Objection",
+                    "done": false
+                },
+                {
+                    "text": "Connect course to Motivation/Their Gap",
+                    "done": false
+                },
+                {
+                    "text": "Great Ask for Sale",
+                    "done": false
+                },
+                {
+                    "text": "Additional Support Required",
+                    "done": false
+                },
+                {
+                    "text": "Summarise Call",
+                    "done": false
+                },
+                {
+                    "text": "Book Followup or Next Steps",
+                    "done": false
+                }
+            ],
             "last_refresh": "2025-02-05"
         }
     },
@@ -224,7 +264,44 @@
         },
         "start call": {
             "daily_refresh": false,
-            "tasks": [],
+            "tasks": [
+                {
+                    "text": "Rapport Question",
+                    "done": false
+                },
+                {
+                    "text": "2nd Open Question",
+                    "done": false
+                },
+                {
+                    "text": "Followup on Support Given Previously",
+                    "done": false
+                },
+                {
+                    "text": "Value Add Item",
+                    "done": false
+                },
+                {
+                    "text": "Objection",
+                    "done": false
+                },
+                {
+                    "text": "Further Support Required?",
+                    "done": false
+                },
+                {
+                    "text": "Anything Else they want to Ask?",
+                    "done": false
+                },
+                {
+                    "text": "Summarise Call",
+                    "done": false
+                },
+                {
+                    "text": "Book Followup or Next Steps",
+                    "done": false
+                }
+            ],
             "last_refresh": "2025-02-05"
         }
     },
@@ -276,6 +353,10 @@
                 },
                 {
                     "text": "Additional Support Required?",
+                    "done": false
+                },
+                {
+                    "text": "Anything Else they want to Ask?",
                     "done": false
                 },
                 {
