@@ -304,34 +304,32 @@ class ChecklistApp:
         self.task_entry.delete(0, tk.END)
     
     def display_tasks(self):
-        # Clear existing tasks in tasks_frame
         for widget in self.tasks_frame.winfo_children():
             widget.destroy()
-            
+
         ct = self.current_call_type
         cl = self.current_checklist_type
         tasks = self.checklists[ct][cl]['tasks']
-        
-        # Create a canvas + scrollbar to allow scrolling if the list is long
+
+        # Create a scrollable area for tasks.
         canvas = tk.Canvas(self.tasks_frame, bg=self.colors['bg'], highlightthickness=0)
         scrollbar = ttk.Scrollbar(self.tasks_frame, orient="vertical", command=canvas.yview)
         scrollable_frame = ttk.Frame(canvas, style='Custom.TFrame')
-    
+
         scrollable_frame.bind("<Configure>", lambda e: canvas.configure(scrollregion=canvas.bbox("all")))
-        
         canvas.create_window((0, 0), window=scrollable_frame, anchor="nw")
         canvas.configure(yscrollcommand=scrollbar.set)
-    
+
         scrollbar.pack(side="right", fill="y")
         canvas.pack(side="left", fill="both", expand=True)
-    
-        # Display each task – including a button to toggle done, an edit and a delete button.
+
+        # Display each task.
         for i, task in enumerate(tasks):
             frame = ttk.Frame(scrollable_frame, style='Custom.TFrame')
             frame.pack(fill=tk.X, pady=5)
-    
-            # Special handling for Objection task in Sales or Support (Start Call).
-            if ct in ["sales", "support"] and cl == "start call" and task['text'] == "Objection":
+
+            # Special handling for Objection task in Sales, Reengagement, Support, or At-Risk (Start Call).
+            if ct in ["sales", "reengagement", "support", "at-risk"] and cl == "start call" and task['text'] == "Objection":
                 style_val = 'Accent.TButton'
                 if (self.objection_subchecklist_data is not None and all(item['done'] for item in self.objection_subchecklist_data)):
                     style_val = 'Completed.TButton'
@@ -342,24 +340,24 @@ class ChecklistApp:
                 task_btn = ttk.Button(frame, text=task['text'],
                                       command=lambda i=i: self.toggle_task(i), style=btn_style)
             task_btn.pack(side=tk.LEFT, fill=tk.X, expand=True)
-    
+
             edit_btn = ttk.Button(frame, text="✏️", command=lambda i=i: self.edit_task(i))
             edit_btn.pack(side=tk.LEFT, padx=5)
             edit_btn.config(width=2)
-    
+
             delete_btn = ttk.Button(frame, text="🗑️", command=lambda i=i: self.delete_task(i))
             delete_btn.pack(side=tk.LEFT, padx=5)
             delete_btn.config(width=2)
-    
+
             # If this is an Objection row and a mini sub-checklist exists, render it.
-            if ct in ["sales", "support"] and cl == "start call" and task['text'] == "Objection" and self.objection_subchecklist_data is not None:
+            if ct in ["sales", "reengagement", "support", "at-risk"] and cl == "start call" and task['text'] == "Objection" and self.objection_subchecklist_data is not None:
                 self.render_objection_subchecklist(scrollable_frame)
     
     def toggle_task(self, task_idx):
         ct = self.current_call_type
         cl = self.current_checklist_type
-        # For Sales or Support, Start Call Objection tasks trigger the mini sub-checklist.
-        if ct in ["sales", "support"] and cl == "start call" and self.checklists[ct][cl]['tasks'][task_idx]['text'] == "Objection":
+        # For Sales, Reengagement, Support, or At-Risk, Start Call Objection tasks trigger the mini sub-checklist.
+        if ct in ["sales", "reengagement", "support", "at-risk"] and cl == "start call" and self.checklists[ct][cl]['tasks'][task_idx]['text'] == "Objection":
             self.open_objection_subchecklist()
             return
         else:
