@@ -91,14 +91,60 @@
         },
         "start call": {
             "daily_refresh": false,
-            "tasks": [],
+            "tasks": [
+                {
+                    "text": "Rapport Question",
+                    "done": false
+                },
+                {
+                    "text": "2nd Open Question",
+                    "done": false
+                },
+                {
+                    "text": "Value Add Item",
+                    "done": false
+                },
+                {
+                    "text": "Great Ask for Sale",
+                    "done": false
+                },
+                {
+                    "text": "Objection",
+                    "done": false
+                },
+                {
+                    "text": "Implement Sale Now or \"How & When\"",
+                    "done": false
+                },
+                {
+                    "text": "Summarise Call",
+                    "done": false
+                },
+                {
+                    "text": "Book Followup or Next Steps",
+                    "done": false
+                }
+            ],
             "last_refresh": "2025-02-05"
         }
     },
     "reengagement": {
         "voicemail": {
             "daily_refresh": false,
-            "tasks": [],
+            "tasks": [
+                {
+                    "text": "Purpose",
+                    "done": false
+                },
+                {
+                    "text": "Call to Action",
+                    "done": false
+                },
+                {
+                    "text": "Timeframe",
+                    "done": false
+                }
+            ],
             "last_refresh": "2025-02-05"
         },
         "start call": {
@@ -110,7 +156,20 @@
     "followup": {
         "voicemail": {
             "daily_refresh": false,
-            "tasks": [],
+            "tasks": [
+                {
+                    "text": "Purpose",
+                    "done": false
+                },
+                {
+                    "text": "Call to Action",
+                    "done": false
+                },
+                {
+                    "text": "Timeframe",
+                    "done": false
+                }
+            ],
             "last_refresh": "2025-02-05"
         },
         "start call": {
@@ -122,7 +181,20 @@
     "at-risk": {
         "voicemail": {
             "daily_refresh": false,
-            "tasks": [],
+            "tasks": [
+                {
+                    "text": "Purpose",
+                    "done": false
+                },
+                {
+                    "text": "Call to Action",
+                    "done": false
+                },
+                {
+                    "text": "Timeframe",
+                    "done": false
+                }
+            ],
             "last_refresh": "2025-02-05"
         },
         "start call": {
@@ -134,12 +206,87 @@
     "support": {
         "voicemail": {
             "daily_refresh": false,
-            "tasks": [],
+            "tasks": [
+                {
+                    "text": "Purpose",
+                    "done": false
+                },
+                {
+                    "text": "Call to Action",
+                    "done": false
+                },
+                {
+                    "text": "Timeframe",
+                    "done": false
+                }
+            ],
             "last_refresh": "2025-02-05"
         },
         "start call": {
             "daily_refresh": false,
             "tasks": [],
+            "last_refresh": "2025-02-05"
+        }
+    },
+    "introduction": {
+        "voicemail": {
+            "daily_refresh": false,
+            "tasks": [
+                {
+                    "text": "Purpose",
+                    "done": false
+                },
+                {
+                    "text": "Call to Action",
+                    "done": false
+                },
+                {
+                    "text": "Timeframe",
+                    "done": false
+                }
+            ],
+            "last_refresh": "2025-02-05"
+        },
+        "start call": {
+            "daily_refresh": false,
+            "tasks": [
+                {
+                    "text": "Repport Question",
+                    "done": false
+                },
+                {
+                    "text": "2nd Open Question",
+                    "done": false
+                },
+                {
+                    "text": "Value Add Item",
+                    "done": false
+                },
+                {
+                    "text": "Learn their Current Situation",
+                    "done": false
+                },
+                {
+                    "text": "Learn their Desired Situation",
+                    "done": false
+                },
+                {
+                    "text": "Identify their Gap (& Problem Solve or Connect to Us)",
+                    "done": false
+                },
+                {
+                    "text": "Additional Support Required?",
+                    "done": false
+                },
+                {
+                    "text": "Summarise Call",
+                    "done": false
+                },
+                {
+                    "text": "Book Next Call or Followup Steps",
+                    "done": false
+                }
+            ],
             "last_refresh": "2025-02-05"
         }
     }

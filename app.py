@@ -55,7 +55,7 @@ class ChecklistApp:
                              padding=10)
         
         # Define our call types and checklist modes
-        self.call_types = ["sales", "reengagement", "followup", "at-risk", "support"]
+        self.call_types = ["sales", "reengagement", "followup", "at-risk", "support", "introduction"]
         self.checklist_options = ["voicemail", "start call"]
         
         # Data file and checklists structure: data is organized by call type then checklist option
@@ -74,6 +74,10 @@ class ChecklistApp:
         self.task_entry = None
         self.tasks_frame = None
         
+        # Instance variables for Objection mini sub-checklist (Sales, Start Call only)
+        self.objection_subchecklist_data = None
+        # (We recreate the mini checklist UI each time in display_tasks)
+        
         self.show_home_page()
     
     def clear_container(self):
@@ -90,28 +94,65 @@ class ChecklistApp:
                     data = json.load(f)
                 except Exception:
                     data = {}
+        
+        # Define preset tasks for each call type / checklist option.
+        default_voicemail_tasks = [
+            {'text': 'Purpose', 'done': False},
+            {'text': 'Call to Action', 'done': False},
+            {'text': 'Timeframe', 'done': False}
+        ]
+        preset_tasks = {
+            ("sales", "voicemail"): default_voicemail_tasks,
+            ("sales", "start call"): [
+                {'text': 'Rapport Question', 'done': False},
+                {'text': '2nd Open Question', 'done': False},
+                {'text': 'Value Add Item', 'done': False},
+                {'text': 'Great Ask for Sale', 'done': False},
+                {'text': 'Objection', 'done': False},
+                {'text': 'Implement Sale Now or "How & When"', 'done': False},
+                {'text': 'Summarise Call', 'done': False},
+                {'text': 'Book Followup or Next Steps', 'done': False}
+            ],
+            ("reengagement", "voicemail"): default_voicemail_tasks,
+            ("reengagement", "start call"): [],
+            ("followup", "voicemail"): default_voicemail_tasks,
+            ("followup", "start call"): [],
+            ("at-risk", "voicemail"): default_voicemail_tasks,
+            ("at-risk", "start call"): [],
+            ("support", "voicemail"): default_voicemail_tasks,
+            ("support", "start call"): [],
+            ("introduction", "voicemail"): default_voicemail_tasks,
+            ("introduction", "start call"): [
+                {'text': 'Repport Question', 'done': False},
+                {'text': '2nd Open Question', 'done': False},
+                {'text': 'Value Add Item', 'done': False},
+                {'text': 'Learn their Current Situation', 'done': False},
+                {'text': 'Learn their Desired Situation', 'done': False},
+                {'text': 'Identify their Gap (& Problem Solve or Connect to Us)', 'done': False},
+                {'text': 'Additional Support Required?', 'done': False},
+                {'text': 'Summarise Call', 'done': False},
+                {'text': 'Book Next Call or Followup Steps', 'done': False}
+            ]
+        }
+        
         # Ensure every call type has two checklist modes
         for ct in self.call_types:
             if ct not in data:
                 data[ct] = {}
             for option in self.checklist_options:
                 if option not in data[ct]:
-                    if option == "voicemail":
-                        # Default tasks for voicemail checklists.
-                        default_tasks = [
-                            {'text': 'Purpose', 'done': False},
-                            {'text': 'Call To Action', 'done': False},
-                            {'text': 'Timeframe', 'done': False}
-                        ]
-                    else:
-                        default_tasks = []
                     data[ct][option] = {
                         'daily_refresh': False,
-                        'tasks': default_tasks,
+                        'tasks': preset_tasks.get((ct, option), []),
                         'last_refresh': today
                     }
                 else:
                     checklist = data[ct][option]
+                    # If the tasks list is empty and we have a preset for this combination, fill it.
+                    if not checklist.get("tasks"):
+                        preset = preset_tasks.get((ct, option), [])
+                        if preset:
+                            checklist["tasks"] = preset
                     # If daily refresh is enabled and the last refresh date isn't today, reset.
                     if checklist.get('daily_refresh', False) and checklist.get('last_refresh', '') != today:
                         for task in checklist.get('tasks', []):
@@ -189,11 +230,14 @@ class ChecklistApp:
         self.display_tasks()
     
     def new_call(self):
-        # Reset the current checklist by marking all tasks as not done.
+        # Reset the current checklist by marking all tasks as not done and clearing the objection mini checklist.
         if self.current_call_type and self.current_checklist_type:
             for task in self.checklists[self.current_call_type][self.current_checklist_type]['tasks']:
                 task['done'] = False
             self.save_data()
+        # Reset the objection sub-checklist (if any)
+        self.objection_subchecklist_data = None
+        self.display_tasks()
         self.show_home_page()
     
     def add_task(self, event=None):
@@ -236,11 +280,20 @@ class ChecklistApp:
             frame = ttk.Frame(scrollable_frame, style='Custom.TFrame')
             frame.pack(fill=tk.X, pady=5)
     
-            task_style = 'Completed.TButton' if task['done'] else 'Accent.TButton'
-            
-            task_btn = ttk.Button(frame, text=task['text'],
-                                  command=lambda i=i: self.toggle_task(i),
-                                  style=task_style)
+            # For the Sales Start Call Objection task, we override the toggle behavior.
+            if (ct == "sales" and cl == "start call" and task['text'] == "Objection"):
+                # If the objection sub checklist exists and all its tasks are done, change to green.
+                style_val = 'Accent.TButton'
+                if self.objection_subchecklist_data is not None and all(item['done'] for item in self.objection_subchecklist_data):
+                    style_val = 'Completed.TButton'
+                task_btn = ttk.Button(frame, text=task['text'],
+                                      command=lambda i=i: self.open_objection_subchecklist(),
+                                      style=style_val)
+            else:
+                task_style = 'Completed.TButton' if task['done'] else 'Accent.TButton'
+                task_btn = ttk.Button(frame, text=task['text'],
+                                      command=lambda i=i: self.toggle_task(i),
+                                      style=task_style)
             task_btn.pack(side=tk.LEFT, fill=tk.X, expand=True)
     
             edit_btn = ttk.Button(frame, text="✏️", command=lambda i=i: self.edit_task(i))
@@ -251,12 +304,22 @@ class ChecklistApp:
             delete_btn.pack(side=tk.LEFT, padx=5)
             delete_btn.config(width=2)
     
+            # If this is the Objection row and the objection mini checklist is active, render it.
+            if (ct == "sales" and cl == "start call" and task['text'] == "Objection"
+                and self.objection_subchecklist_data is not None):
+                self.render_objection_subchecklist(scrollable_frame)
+    
     def toggle_task(self, task_idx):
         ct = self.current_call_type
         cl = self.current_checklist_type
-        self.checklists[ct][cl]['tasks'][task_idx]['done'] = not self.checklists[ct][cl]['tasks'][task_idx]['done']
-        self.save_data()
-        self.display_tasks()
+        # For Sales/Start Call Objection task, clicking it will open the mini sub-checklist
+        if ct == "sales" and cl == "start call" and self.checklists[ct][cl]['tasks'][task_idx]['text'] == "Objection":
+            self.open_objection_subchecklist()
+            return
+        else:
+            self.checklists[ct][cl]['tasks'][task_idx]['done'] = not self.checklists[ct][cl]['tasks'][task_idx]['done']
+            self.save_data()
+            self.display_tasks()
     
     def edit_task(self, task_idx):
         ct = self.current_call_type
@@ -273,6 +336,33 @@ class ChecklistApp:
         cl = self.current_checklist_type
         del self.checklists[ct][cl]['tasks'][task_idx]
         self.save_data()
+        self.display_tasks()
+    
+    def open_objection_subchecklist(self):
+        # When Objection is clicked in Sales Start Call, initialize the mini sub-checklist if not already.
+        if self.objection_subchecklist_data is None:
+            self.objection_subchecklist_data = [
+                {'text': 'Listen & Acknowledge', 'done': False},
+                {'text': 'Clarify & Question', 'done': False},
+                {'text': 'Address the Objection', 'done': False},
+                {'text': 'Confirm & Close', 'done': False}
+            ]
+        # Refresh to show the objection sub-checklist
+        self.display_tasks()
+    
+    def render_objection_subchecklist(self, parent):
+        # Render the mini objection checklist vertically.
+        sub_frame = ttk.Frame(parent, style='Custom.TFrame')
+        sub_frame.pack(fill=tk.X, padx=20, pady=(0, 5))
+        for idx, subtask in enumerate(self.objection_subchecklist_data):
+            btn_style = 'Completed.TButton' if subtask['done'] else 'Accent.TButton'
+            btn = ttk.Button(sub_frame, text=subtask['text'], style=btn_style,
+                             command=lambda i=idx: self.toggle_objection_item(i))
+            btn.pack(fill=tk.X, padx=5, pady=2)
+    
+    def toggle_objection_item(self, index):
+        # Toggle the mini sub-checklist item.
+        self.objection_subchecklist_data[index]['done'] = not self.objection_subchecklist_data[index]['done']
         self.display_tasks()
 
 def main():
