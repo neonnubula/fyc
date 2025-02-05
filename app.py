@@ -8,7 +8,7 @@ class ChecklistApp:
     def __init__(self, root):
         self.root = root
         self.root.title("Finish Your Checklist")
-        self.root.geometry("600x500")  # Set a smaller default window size
+        self.root.geometry("400x600")  # Set a taller and narrower default window size
         self.root.configure(bg="#ffffff")
         
         # Try to load custom font, fallback to system font if unavailable
@@ -91,8 +91,8 @@ class ChecklistApp:
         
         # Checklist dropdown
         ttk.Label(top_panel, text="Select Checklist", style='Header.TLabel').pack(side=tk.LEFT, padx=(0, 5))
-        self.checklist_combobox = ttk.Combobox(top_panel, state='readonly', style='Custom.TEntry')
-        self.checklist_combobox.pack(side=tk.LEFT, fill=tk.X, expand=True, padx=(0, 5))
+        self.checklist_combobox = ttk.Combobox(top_panel, state='readonly', style='Custom.TEntry', width=30)
+        self.checklist_combobox.pack(side=tk.LEFT, padx=(0, 5))
         self.checklist_combobox.bind('<<ComboboxSelected>>', self.on_select_checklist)
         
         # Add new checklist button
@@ -114,23 +114,31 @@ class ChecklistApp:
         bottom_panel = ttk.Frame(main_container, style='Custom.TFrame', padding="10")
         bottom_panel.pack(side=tk.TOP, fill=tk.BOTH, expand=True)
         
-        # Task management header
-        self.current_checklist_label = ttk.Label(bottom_panel, text="No Checklist Selected", 
-                                               style='Header.TLabel')
-        self.current_checklist_label.pack(pady=(0, 10))
-        
         # Task input with enter key binding
         task_frame = ttk.Frame(bottom_panel, style='Custom.TFrame')
         task_frame.pack(fill=tk.X, pady=(0, 10))
         
-        self.task_entry = ttk.Entry(task_frame, style='Custom.TEntry')
-        self.task_entry.pack(side=tk.LEFT, expand=True, fill=tk.X, padx=(0, 5))
+        self.task_entry = ttk.Entry(task_frame, style='Custom.TEntry', width=30)
+        self.task_entry.insert(0, "Add a new task")  # Add placeholder text
+        self.task_entry.bind("<FocusIn>", lambda event: self.task_entry.delete(0, tk.END))  # Clear on focus
+        self.task_entry.pack(side=tk.LEFT, padx=(0, 5))
         self.task_entry.bind('<Return>', lambda e: self.add_task())
         
-        add_task_btn = ttk.Button(task_frame, text="Add Task",
+        add_task_btn = ttk.Button(task_frame, text="+",
                                   command=self.add_task,
                                   style='Accent.TButton')
-        add_task_btn.pack(side=tk.LEFT)
+        add_task_btn.pack(side=tk.LEFT, padx=(5, 0))
+        add_task_btn.config(width=2)  # Set width to fit the icon
+        
+        # Control buttons for tasks
+        control_frame = ttk.Frame(bottom_panel, style='Custom.TFrame')
+        control_frame.pack(fill=tk.X, pady=(0, 10))
+        
+        refresh_btn = ttk.Button(control_frame, text="🔄", command=self.refresh_checklist, style='Accent.TButton')
+        refresh_btn.pack(side=tk.LEFT, padx=(5, 0))
+        
+        complete_all_btn = ttk.Button(control_frame, text="✔️", command=self.complete_all_tasks, style='Accent.TButton')
+        complete_all_btn.pack(side=tk.LEFT, padx=(5, 0))
         
         # Tasks display
         self.tasks_frame = ttk.Frame(bottom_panel, style='Custom.TFrame')
@@ -206,12 +214,10 @@ class ChecklistApp:
         if self.checklist_combobox['values']:
             self.checklist_combobox.current(0)  # Select the first checklist by default
             self.display_tasks(self.checklist_combobox.get())  # Display tasks for the first checklist
-            self.current_checklist_label.config(text=f"Checklist: {self.checklist_combobox.get()}")
         
     def on_select_checklist(self, event):
         selected_checklist = self.checklist_combobox.get()
         if selected_checklist:
-            self.current_checklist_label.config(text=f"Checklist: {selected_checklist}")
             self.display_tasks(selected_checklist)
         
     def add_task(self):
@@ -239,46 +245,56 @@ class ChecklistApp:
         # Clear existing tasks
         for widget in self.tasks_frame.winfo_children():
             widget.destroy()
-            
+
         # Create scrollable frame
         canvas = tk.Canvas(self.tasks_frame, bg=self.colors['bg'], highlightthickness=0)
         scrollbar = ttk.Scrollbar(self.tasks_frame, orient="vertical", command=canvas.yview)
         scrollable_frame = ttk.Frame(canvas, style='Custom.TFrame')
-        
+
         scrollable_frame.bind(
             "<Configure>",
             lambda e: canvas.configure(scrollregion=canvas.bbox("all"))
         )
-        
+
+        # Bind mouse wheel to canvas for scrolling
+        canvas.bind("<Enter>", lambda e: canvas.focus_set())  # Ensure focus on hover
+        canvas.bind("<MouseWheel>", lambda event: canvas.yview_scroll(int(-1*(event.delta/120)), "units"))
+        canvas.bind("<Button-4>", lambda event: canvas.yview_scroll(-1, "units"))  # For Linux
+        canvas.bind("<Button-5>", lambda event: canvas.yview_scroll(1, "units"))   # For Linux
+
+        # Bind arrow keys for scrolling
+        canvas.bind("<Down>", lambda event: canvas.yview_scroll(1, "units"))
+        canvas.bind("<Up>", lambda event: canvas.yview_scroll(-1, "units"))
+
         canvas.create_window((0, 0), window=scrollable_frame, anchor="nw")
         canvas.configure(yscrollcommand=scrollbar.set)
-        
+
         # Pack scrollbar and canvas
         scrollbar.pack(side="right", fill="y")
         canvas.pack(side="left", fill="both", expand=True)
-        
+
         # Display tasks
         for i, task in enumerate(self.checklists[checklist_name]['tasks']):
             frame = ttk.Frame(scrollable_frame, style='Custom.TFrame')
             frame.pack(fill=tk.X, pady=5)
-            
+
             # Task button
             task_button = ttk.Button(frame, text=task['text'],
                                      command=lambda i=i: self.toggle_task(checklist_name, i),
                                      style='Accent.TButton')
             task_button.pack(side=tk.LEFT, fill=tk.X, expand=True)
-            
+
             # Change button color based on task completion
             if task['done']:
                 task_button.configure(style='Completed.TButton')
             else:
                 task_button.configure(style='Accent.TButton')
-            
+
             # Edit button
             edit_btn = ttk.Button(frame, text="✏️", command=lambda i=i: self.edit_task(checklist_name, i))
             edit_btn.pack(side=tk.LEFT, padx=5)
             edit_btn.config(width=2)  # Set width to fit the emoji
-            
+
             # Delete button
             delete_btn = ttk.Button(frame, text="🗑️", command=lambda i=i: self.delete_task(checklist_name, i))
             delete_btn.pack(side=tk.LEFT, padx=5)
@@ -298,9 +314,34 @@ class ChecklistApp:
         self.display_tasks(checklist_name)
         
     def clear_tasks_display(self):
-        self.current_checklist_label.config(text="No Checklist Selected")
         for widget in self.tasks_frame.winfo_children():
             widget.destroy()
+
+    def refresh_checklist(self):
+        selected_checklist = self.checklist_combobox.get()
+        if not selected_checklist:
+            messagebox.showwarning("Warning", "No checklist selected")
+            return
+
+        # Logic to refresh the checklist (e.g., reset task statuses)
+        for task in self.checklists[selected_checklist]['tasks']:
+            task['done'] = False  # Example: Reset all tasks to not done
+
+        self.save_data()
+        self.display_tasks(selected_checklist)
+
+    def complete_all_tasks(self):
+        selected_checklist = self.checklist_combobox.get()
+        if not selected_checklist:
+            messagebox.showwarning("Warning", "No checklist selected")
+            return
+
+        # Mark all tasks as complete
+        for task in self.checklists[selected_checklist]['tasks']:
+            task['done'] = True
+
+        self.save_data()
+        self.display_tasks(selected_checklist)
 
 def main():
     root = tk.Tk()
