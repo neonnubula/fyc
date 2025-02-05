@@ -7,18 +7,14 @@ import os
 class ChecklistApp:
     def __init__(self, root):
         self.root = root
-        self.root.title("Finish Your Checklist")
-        self.root.geometry("400x600")  # Set a taller and narrower default window size
+        self.root.title("Call Centre Checklist")
+        self.root.geometry("400x600")
         self.root.configure(bg="#ffffff")
         
         # Try to load custom font, fallback to system font if unavailable
         # self.root.option_add("*Font", "Segoe UI 10")
         
-        # Data storage
-        self.data_file = "checklists.json"
-        self.checklists = self.load_data()
-        
-        # Color scheme
+        # Color scheme and styles (most can be reused from previous design)
         self.colors = {
             'bg': '#ffffff',
             'secondary_bg': '#f8f9fa',
@@ -28,320 +24,256 @@ class ChecklistApp:
             'border': '#e1e4e8'
         }
         
-        # Styles
         self.style = ttk.Style()
         self.style.theme_use('clam')
-        
-        # Configure styles
         self.style.configure('Custom.TFrame', background=self.colors['bg'])
-        self.style.configure('Secondary.TFrame', background=self.colors['secondary_bg'])
-        self.style.configure('Custom.TLabel', 
-                           background=self.colors['bg'], 
-                           foreground=self.colors['text'],
-                           font=('Segoe UI', 10))
         self.style.configure('Header.TLabel',
-                           background=self.colors['bg'],
-                           foreground=self.colors['text'],
-                           font=('Segoe UI', 14, 'bold'))
+                             background=self.colors['bg'],
+                             foreground=self.colors['text'],
+                             font=('Segoe UI', 14, 'bold'))
         self.style.configure('Title.TLabel',
-                           background=self.colors['bg'],
-                           foreground=self.colors['accent'],
-                           font=('Arial', 18, 'bold'))
-        
-        # Custom button style
+                             background=self.colors['bg'],
+                             foreground=self.colors['accent'],
+                             font=('Arial', 18, 'bold'))
         self.style.configure('Accent.TButton',
-                           background=self.colors['accent'],
-                           foreground='white',
-                           padding=(10, 5),
-                           borderwidth=2,
-                           relief='raised',
-                           font=('Segoe UI', 10))
-        
-        # Completed task button style
+                             background=self.colors['accent'],
+                             foreground='white',
+                             padding=(10, 5),
+                             borderwidth=2,
+                             relief='raised',
+                             font=('Segoe UI', 10))
         self.style.configure('Completed.TButton',
-                           background='green',
-                           foreground='white',
-                           padding=(10, 5),
-                           borderwidth=2,
-                           relief='raised',
-                           font=('Segoe UI', 10))
-        
-        # Entry style
+                             background='green',
+                             foreground='white',
+                             padding=(10, 5),
+                             borderwidth=2,
+                             relief='raised',
+                             font=('Segoe UI', 10))
         self.style.configure('Custom.TEntry',
-                           fieldbackground=self.colors['secondary_bg'],
-                           borderwidth=0,
-                           padding=10)
+                             fieldbackground=self.colors['secondary_bg'],
+                             borderwidth=0,
+                             padding=10)
         
-        # Main layout
-        self.setup_gui()
+        # Define our call types and checklist modes
+        self.call_types = ["sales", "reengagement", "followup", "at-risk", "support"]
+        self.checklist_options = ["voicemail", "start call"]
         
-    def setup_gui(self):
-        # Main container with padding
-        main_container = ttk.Frame(self.root, style='Custom.TFrame', padding="10")
-        main_container.pack(fill=tk.BOTH, expand=True)
+        # Data file and checklists structure: data is organized by call type then checklist option
+        self.data_file = "checklists.json"
+        self.checklists = self.load_data()
         
-        # App title
-        title = ttk.Label(main_container, text="Finish Your Checklist", style='Title.TLabel')
-        title.config(font=('Arial', 18, 'bold'))
-        title.pack(pady=(0, 10))
+        # The container which we will use to switch between views
+        self.container = ttk.Frame(self.root, style='Custom.TFrame', padding="10")
+        self.container.pack(fill=tk.BOTH, expand=True)
         
-        # Top panel - Checklist management
-        top_panel = ttk.Frame(main_container, style='Secondary.TFrame', padding="10")
-        top_panel.pack(side=tk.TOP, fill=tk.X, padx=(0, 5), pady=0)
+        # To store the currently selected call type & checklist mode for the checklist page
+        self.current_call_type = None
+        self.current_checklist_type = None
         
-        # Checklist dropdown
-        ttk.Label(top_panel, text="Select Checklist", style='Header.TLabel').pack(side=tk.LEFT, padx=(0, 5))
-        self.checklist_combobox = ttk.Combobox(top_panel, state='readonly', style='Custom.TEntry', width=30)
-        self.checklist_combobox.pack(side=tk.LEFT, padx=(0, 5))
-        self.checklist_combobox.bind('<<ComboboxSelected>>', self.on_select_checklist)
+        # To reference the task entry and tasks frame in the checklist view
+        self.task_entry = None
+        self.tasks_frame = None
         
-        # Add new checklist button
-        add_checklist_btn = ttk.Button(top_panel, text="+", command=self.create_checklist, style='Accent.TButton')
-        add_checklist_btn.pack(side=tk.LEFT, padx=(5, 0))
-        add_checklist_btn.config(width=2)  # Set width to fit the icon
-        
-        # Edit checklist button
-        edit_checklist_btn = ttk.Button(top_panel, text="✏️", command=self.edit_checklist, style='Accent.TButton')
-        edit_checklist_btn.pack(side=tk.LEFT, padx=(5, 0))
-        edit_checklist_btn.config(width=2)  # Set width to fit the icon
-        
-        # Delete checklist button
-        delete_checklist_btn = ttk.Button(top_panel, text="🗑️", command=self.delete_checklist, style='Accent.TButton')
-        delete_checklist_btn.pack(side=tk.LEFT, padx=(5, 0))
-        delete_checklist_btn.config(width=2)  # Set width to fit the icon
-        
-        # Bottom panel - Task management
-        bottom_panel = ttk.Frame(main_container, style='Custom.TFrame', padding="10")
-        bottom_panel.pack(side=tk.TOP, fill=tk.BOTH, expand=True)
-        
-        # Task input with enter key binding
-        task_frame = ttk.Frame(bottom_panel, style='Custom.TFrame')
-        task_frame.pack(fill=tk.X, pady=(0, 10))
-        
-        self.task_entry = ttk.Entry(task_frame, style='Custom.TEntry', width=30)
-        self.task_entry.insert(0, "Add a new task")  # Add placeholder text
-        self.task_entry.bind("<FocusIn>", lambda event: self.task_entry.delete(0, tk.END))  # Clear on focus
-        self.task_entry.pack(side=tk.LEFT, padx=(0, 5))
-        self.task_entry.bind('<Return>', lambda e: self.add_task())
-        
-        add_task_btn = ttk.Button(task_frame, text="+",
-                                  command=self.add_task,
-                                  style='Accent.TButton')
-        add_task_btn.pack(side=tk.LEFT, padx=(5, 0))
-        add_task_btn.config(width=2)  # Set width to fit the icon
-        
-        # Control buttons for tasks
-        control_frame = ttk.Frame(bottom_panel, style='Custom.TFrame')
-        control_frame.pack(fill=tk.X, pady=(0, 10))
-        
-        refresh_btn = ttk.Button(control_frame, text="🔄", command=self.refresh_checklist, style='Accent.TButton')
-        refresh_btn.pack(side=tk.LEFT, padx=(5, 0))
-        
-        complete_all_btn = ttk.Button(control_frame, text="✔️", command=self.complete_all_tasks, style='Accent.TButton')
-        complete_all_btn.pack(side=tk.LEFT, padx=(5, 0))
-        
-        # Tasks display
-        self.tasks_frame = ttk.Frame(bottom_panel, style='Custom.TFrame')
-        self.tasks_frame.pack(fill=tk.BOTH, expand=True)
-        
-        # Update display
-        self.update_checklist_display()
-        
+        self.show_home_page()
+    
+    def clear_container(self):
+        # Remove all widgets from the container
+        for widget in self.container.winfo_children():
+            widget.destroy()
+    
     def load_data(self):
+        data = {}
+        today = date.today().isoformat()
         if os.path.exists(self.data_file):
             with open(self.data_file, 'r') as f:
-                data = json.load(f)
-                today = date.today().isoformat()
-                for checklist in data.values():
+                try:
+                    data = json.load(f)
+                except Exception:
+                    data = {}
+        # Ensure every call type has two checklist modes
+        for ct in self.call_types:
+            if ct not in data:
+                data[ct] = {}
+            for option in self.checklist_options:
+                if option not in data[ct]:
+                    if option == "voicemail":
+                        # Default tasks for voicemail checklists.
+                        default_tasks = [
+                            {'text': 'Purpose', 'done': False},
+                            {'text': 'Call To Action', 'done': False},
+                            {'text': 'Timeframe', 'done': False}
+                        ]
+                    else:
+                        default_tasks = []
+                    data[ct][option] = {
+                        'daily_refresh': False,
+                        'tasks': default_tasks,
+                        'last_refresh': today
+                    }
+                else:
+                    checklist = data[ct][option]
+                    # If daily refresh is enabled and the last refresh date isn't today, reset.
                     if checklist.get('daily_refresh', False) and checklist.get('last_refresh', '') != today:
-                        for task in checklist['tasks']:
+                        for task in checklist.get('tasks', []):
                             task['done'] = False
                         checklist['last_refresh'] = today
-                return data
-        return {}
+        return data
     
     def save_data(self):
         with open(self.data_file, 'w') as f:
             json.dump(self.checklists, f, indent=4)
-            
-    def create_checklist(self):
-        name = simpledialog.askstring("New Checklist", "Enter the name of the new checklist:")
-        if not name:
-            return
-        if name in self.checklists:
-            messagebox.showwarning("Warning", "A checklist with this name already exists")
-            return
-            
-        self.checklists[name] = {
-            'daily_refresh': False,
-            'tasks': [],
-            'last_refresh': date.today().isoformat()
-        }
+    
+    def show_home_page(self):
+        # Home page: a button for each call type.
+        self.clear_container()
+        title = ttk.Label(self.container, text="Call Centre Checklist", style='Title.TLabel')
+        title.pack(pady=(0, 20))
+        instruction = ttk.Label(self.container, text="Select Call Type:", style='Header.TLabel')
+        instruction.pack(pady=(0, 10))
         
-        self.save_data()
-        self.update_checklist_display()
+        for ct in self.call_types:
+            btn = ttk.Button(self.container, text=ct.capitalize(),
+                             command=lambda ct=ct: self.show_call_sub_menu(ct),
+                             style='Accent.TButton')
+            btn.pack(fill=tk.X, padx=10, pady=5)
+    
+    def show_call_sub_menu(self, call_type):
+        # Second page: choose between Voicemail or Start Call for the selected call type
+        self.clear_container()
+        label = ttk.Label(self.container, text=f"Call Type: {call_type.capitalize()}", style='Header.TLabel')
+        label.pack(pady=(0, 20))
+        instruction = ttk.Label(self.container, text="Select an option:", style='Header.TLabel')
+        instruction.pack(pady=(0, 10))
         
-    def edit_checklist(self):
-        selected_checklist = self.checklist_combobox.get()
-        if not selected_checklist:
-            messagebox.showwarning("Warning", "Please select a checklist to edit")
-            return
-
-        new_name = simpledialog.askstring("Edit Checklist", "Enter the new name for the checklist:", initialvalue=selected_checklist)
-        if new_name and new_name != selected_checklist:
-            if new_name in self.checklists:
-                messagebox.showwarning("Warning", "A checklist with this name already exists")
-                return
-            self.checklists[new_name] = self.checklists.pop(selected_checklist)
+        voicemail_btn = ttk.Button(self.container, text="Voicemail",
+                                   command=lambda: self.show_checklist_page(call_type, "voicemail"),
+                                   style='Accent.TButton')
+        voicemail_btn.pack(fill=tk.X, padx=10, pady=5)
+        
+        start_call_btn = ttk.Button(self.container, text="Start Call",
+                                    command=lambda: self.show_checklist_page(call_type, "start call"),
+                                    style='Accent.TButton')
+        start_call_btn.pack(fill=tk.X, padx=10, pady=5)
+    
+    def show_checklist_page(self, call_type, checklist_type):
+        # Checklist page: show tasks for the selected call type and checklist type.
+        self.clear_container()
+        self.current_call_type = call_type
+        self.current_checklist_type = checklist_type
+        
+        header = ttk.Label(self.container, 
+                           text=f"{call_type.capitalize()} - {checklist_type.capitalize()} Checklist",
+                           style='Title.TLabel')
+        header.pack(pady=(0, 10))
+        
+        # "New Call" button resets all tasks (marking every task as not done) then returns to home.
+        new_call_btn = ttk.Button(self.container, text="New Call", command=self.new_call, style='Accent.TButton')
+        new_call_btn.pack(pady=(0, 10))
+        
+        # Task input section with entry and add button
+        task_frame = ttk.Frame(self.container, style='Custom.TFrame')
+        task_frame.pack(fill=tk.X, pady=(0, 10))
+        self.task_entry = ttk.Entry(task_frame, style='Custom.TEntry')
+        self.task_entry.insert(0, "Add a new task")
+        self.task_entry.bind("<FocusIn>", lambda e: self.task_entry.delete(0, tk.END))
+        self.task_entry.bind('<Return>', self.add_task)
+        self.task_entry.pack(side=tk.LEFT, padx=(0, 5), fill=tk.X, expand=True)
+        add_task_btn = ttk.Button(task_frame, text="+", command=self.add_task, style='Accent.TButton')
+        add_task_btn.pack(side=tk.LEFT)
+        add_task_btn.config(width=2)
+        
+        # Tasks will be displayed in a separate frame, scrollable if needed.
+        self.tasks_frame = ttk.Frame(self.container, style='Custom.TFrame')
+        self.tasks_frame.pack(fill=tk.BOTH, expand=True)
+        
+        self.display_tasks()
+    
+    def new_call(self):
+        # Reset the current checklist by marking all tasks as not done.
+        if self.current_call_type and self.current_checklist_type:
+            for task in self.checklists[self.current_call_type][self.current_checklist_type]['tasks']:
+                task['done'] = False
             self.save_data()
-            self.update_checklist_display()
-        
-    def delete_checklist(self):
-        selected_checklist = self.checklist_combobox.get()
-        if not selected_checklist:
-            messagebox.showwarning("Warning", "Please select a checklist to delete")
-            return
-
-        if messagebox.askyesno("Confirm Delete", f"Are you sure you want to delete '{selected_checklist}'?"):
-            del self.checklists[selected_checklist]
-            self.save_data()
-            self.update_checklist_display()
-            self.clear_tasks_display()
-        
-    def update_checklist_display(self):
-        # Update the combobox with the list of checklists
-        self.checklist_combobox['values'] = sorted(self.checklists.keys())
-        if self.checklist_combobox['values']:
-            self.checklist_combobox.current(0)  # Select the first checklist by default
-            self.display_tasks(self.checklist_combobox.get())  # Display tasks for the first checklist
-        
-    def on_select_checklist(self, event):
-        selected_checklist = self.checklist_combobox.get()
-        if selected_checklist:
-            self.display_tasks(selected_checklist)
-        
-    def add_task(self):
+        self.show_home_page()
+    
+    def add_task(self, event=None):
         task_text = self.task_entry.get().strip()
-        if not task_text:
+        if not task_text or task_text == "Add a new task":
             messagebox.showwarning("Warning", "Task cannot be empty")
             return
-
-        selected_checklist = self.checklist_combobox.get()
-        if not selected_checklist:
-            messagebox.showwarning("Warning", "No checklist selected")
-            return
-
-        self.checklists[selected_checklist]['tasks'].append({'text': task_text, 'done': False})
-        self.save_data()
-        self.display_tasks(selected_checklist)
-        self.task_entry.delete(0, tk.END)  # Clear the entry after adding the task
         
-    def toggle_task(self, checklist_name, task_idx):
-        self.checklists[checklist_name]['tasks'][task_idx]['done'] = not self.checklists[checklist_name]['tasks'][task_idx]['done']
+        ct = self.current_call_type
+        cl = self.current_checklist_type
+        self.checklists[ct][cl]['tasks'].append({'text': task_text, 'done': False})
         self.save_data()
-        self.display_tasks(checklist_name)
-        
-    def display_tasks(self, checklist_name):
-        # Clear existing tasks
+        self.display_tasks()
+        self.task_entry.delete(0, tk.END)
+    
+    def display_tasks(self):
+        # Clear existing tasks in tasks_frame
         for widget in self.tasks_frame.winfo_children():
             widget.destroy()
-
-        # Create scrollable frame
+            
+        ct = self.current_call_type
+        cl = self.current_checklist_type
+        tasks = self.checklists[ct][cl]['tasks']
+        
+        # Create a canvas + scrollbar to allow scrolling if the list is long
         canvas = tk.Canvas(self.tasks_frame, bg=self.colors['bg'], highlightthickness=0)
         scrollbar = ttk.Scrollbar(self.tasks_frame, orient="vertical", command=canvas.yview)
         scrollable_frame = ttk.Frame(canvas, style='Custom.TFrame')
-
-        scrollable_frame.bind(
-            "<Configure>",
-            lambda e: canvas.configure(scrollregion=canvas.bbox("all"))
-        )
-
-        # Bind mouse wheel to canvas for scrolling
-        canvas.bind("<Enter>", lambda e: canvas.focus_set())  # Ensure focus on hover
-        canvas.bind("<MouseWheel>", lambda event: canvas.yview_scroll(int(-1*(event.delta/120)), "units"))
-        canvas.bind("<Button-4>", lambda event: canvas.yview_scroll(-1, "units"))  # For Linux
-        canvas.bind("<Button-5>", lambda event: canvas.yview_scroll(1, "units"))   # For Linux
-
-        # Bind arrow keys for scrolling
-        canvas.bind("<Down>", lambda event: canvas.yview_scroll(1, "units"))
-        canvas.bind("<Up>", lambda event: canvas.yview_scroll(-1, "units"))
-
+    
+        scrollable_frame.bind("<Configure>", lambda e: canvas.configure(scrollregion=canvas.bbox("all")))
+        
         canvas.create_window((0, 0), window=scrollable_frame, anchor="nw")
         canvas.configure(yscrollcommand=scrollbar.set)
-
-        # Pack scrollbar and canvas
+    
         scrollbar.pack(side="right", fill="y")
         canvas.pack(side="left", fill="both", expand=True)
-
-        # Display tasks
-        for i, task in enumerate(self.checklists[checklist_name]['tasks']):
+    
+        # Display each task – including a button to toggle done, an edit and a delete button.
+        for i, task in enumerate(tasks):
             frame = ttk.Frame(scrollable_frame, style='Custom.TFrame')
             frame.pack(fill=tk.X, pady=5)
-
-            # Task button
-            task_button = ttk.Button(frame, text=task['text'],
-                                     command=lambda i=i: self.toggle_task(checklist_name, i),
-                                     style='Accent.TButton')
-            task_button.pack(side=tk.LEFT, fill=tk.X, expand=True)
-
-            # Change button color based on task completion
-            if task['done']:
-                task_button.configure(style='Completed.TButton')
-            else:
-                task_button.configure(style='Accent.TButton')
-
-            # Edit button
-            edit_btn = ttk.Button(frame, text="✏️", command=lambda i=i: self.edit_task(checklist_name, i))
+    
+            task_style = 'Completed.TButton' if task['done'] else 'Accent.TButton'
+            
+            task_btn = ttk.Button(frame, text=task['text'],
+                                  command=lambda i=i: self.toggle_task(i),
+                                  style=task_style)
+            task_btn.pack(side=tk.LEFT, fill=tk.X, expand=True)
+    
+            edit_btn = ttk.Button(frame, text="✏️", command=lambda i=i: self.edit_task(i))
             edit_btn.pack(side=tk.LEFT, padx=5)
-            edit_btn.config(width=2)  # Set width to fit the emoji
-
-            # Delete button
-            delete_btn = ttk.Button(frame, text="🗑️", command=lambda i=i: self.delete_task(checklist_name, i))
+            edit_btn.config(width=2)
+    
+            delete_btn = ttk.Button(frame, text="🗑️", command=lambda i=i: self.delete_task(i))
             delete_btn.pack(side=tk.LEFT, padx=5)
-            delete_btn.config(width=2)  # Set width to fit the emoji
-            
-    def edit_task(self, checklist_name, task_idx):
-        task = self.checklists[checklist_name]['tasks'][task_idx]
+            delete_btn.config(width=2)
+    
+    def toggle_task(self, task_idx):
+        ct = self.current_call_type
+        cl = self.current_checklist_type
+        self.checklists[ct][cl]['tasks'][task_idx]['done'] = not self.checklists[ct][cl]['tasks'][task_idx]['done']
+        self.save_data()
+        self.display_tasks()
+    
+    def edit_task(self, task_idx):
+        ct = self.current_call_type
+        cl = self.current_checklist_type
+        task = self.checklists[ct][cl]['tasks'][task_idx]
         new_text = simpledialog.askstring("Edit Task", "Edit the task:", initialvalue=task['text'])
-        if new_text is not None:
-            task['text'] = new_text
+        if new_text is not None and new_text.strip() != "":
+            task['text'] = new_text.strip()
             self.save_data()
-            self.display_tasks(checklist_name)
-            
-    def delete_task(self, checklist_name, task_idx):
-        del self.checklists[checklist_name]['tasks'][task_idx]
+            self.display_tasks()
+    
+    def delete_task(self, task_idx):
+        ct = self.current_call_type
+        cl = self.current_checklist_type
+        del self.checklists[ct][cl]['tasks'][task_idx]
         self.save_data()
-        self.display_tasks(checklist_name)
-        
-    def clear_tasks_display(self):
-        for widget in self.tasks_frame.winfo_children():
-            widget.destroy()
-
-    def refresh_checklist(self):
-        selected_checklist = self.checklist_combobox.get()
-        if not selected_checklist:
-            messagebox.showwarning("Warning", "No checklist selected")
-            return
-
-        # Logic to refresh the checklist (e.g., reset task statuses)
-        for task in self.checklists[selected_checklist]['tasks']:
-            task['done'] = False  # Example: Reset all tasks to not done
-
-        self.save_data()
-        self.display_tasks(selected_checklist)
-
-    def complete_all_tasks(self):
-        selected_checklist = self.checklist_combobox.get()
-        if not selected_checklist:
-            messagebox.showwarning("Warning", "No checklist selected")
-            return
-
-        # Mark all tasks as complete
-        for task in self.checklists[selected_checklist]['tasks']:
-            task['done'] = True
-
-        self.save_data()
-        self.display_tasks(selected_checklist)
+        self.display_tasks()
 
 def main():
     root = tk.Tk()

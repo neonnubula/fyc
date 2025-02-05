@@ -69,5 +69,78 @@
         "daily_refresh": false,
         "tasks": [],
         "last_refresh": "2025-02-05"
+    },
+    "sales": {
+        "voicemail": {
+            "daily_refresh": false,
+            "tasks": [
+                {
+                    "text": "Purpose",
+                    "done": false
+                },
+                {
+                    "text": "Call To Action",
+                    "done": false
+                },
+                {
+                    "text": "Time Frame",
+                    "done": false
+                }
+            ],
+            "last_refresh": "2025-02-05"
+        },
+        "start call": {
+            "daily_refresh": false,
+            "tasks": [],
+            "last_refresh": "2025-02-05"
+        }
+    },
+    "reengagement": {
+        "voicemail": {
+            "daily_refresh": false,
+            "tasks": [],
+            "last_refresh": "2025-02-05"
+        },
+        "start call": {
+            "daily_refresh": false,
+            "tasks": [],
+            "last_refresh": "2025-02-05"
+        }
+    },
+    "followup": {
+        "voicemail": {
+            "daily_refresh": false,
+            "tasks": [],
+            "last_refresh": "2025-02-05"
+        },
+        "start call": {
+            "daily_refresh": false,
+            "tasks": [],
+            "last_refresh": "2025-02-05"
+        }
+    },
+    "at-risk": {
+        "voicemail": {
+            "daily_refresh": false,
+            "tasks": [],
+            "last_refresh": "2025-02-05"
+        },
+        "start call": {
+            "daily_refresh": false,
+            "tasks": [],
+            "last_refresh": "2025-02-05"
+        }
+    },
+    "support": {
+        "voicemail": {
+            "daily_refresh": false,
+            "tasks": [],
+            "last_refresh": "2025-02-05"
+        },
+        "start call": {
+            "daily_refresh": false,
+            "tasks": [],
+            "last_refresh": "2025-02-05"
+        }
     }
 }
